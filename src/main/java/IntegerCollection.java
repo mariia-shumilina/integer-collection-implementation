@@ -7,6 +7,8 @@
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 import static java.lang.Math.max;
 
@@ -20,9 +22,10 @@ public class IntegerCollection {
         size = 0;
     }
 
-    public IntegerCollection(int wantedCapacity) {
-        data = new int[wantedCapacity];
-        size = 0;
+    public IntegerCollection(int... elements) {
+        size = elements.length;
+        int capacity = max(DEFAULT_CAPACITY, size);
+        data = Arrays.copyOf(elements, capacity);
     }
 
     public int getSize() {
@@ -45,17 +48,15 @@ public class IntegerCollection {
         }
     }
 
-    public IntegerCollection(int... elements) {
-        size = elements.length;
-        int capacity = max(DEFAULT_CAPACITY, size);
-        data = Arrays.copyOf(elements, capacity);
-    }
-
     public void add(int element) {
-        if (size + 1 >= data.length) {
+        if (size == data.length) {
             expand();
         }
         data[size++] = element;
+    }
+
+    public void add(int... elements) {
+        Arrays.stream(elements).forEach(this::add);
     }
 
     public int get(int index) {
@@ -75,6 +76,29 @@ public class IntegerCollection {
         }
 
         size--;
+        squeezeIfNeeded();
+    }
+
+    public void clear() {
+        size = 0;
+        int[] data = new int[DEFAULT_CAPACITY];
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IntegerCollection that = (IntegerCollection) o;
+
+        return this.size == that.size &&
+                IntStream.range(0, size).allMatch(ind -> (this.data[ind] == that.data[ind]));
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(size);
+        result = 31 * result + Arrays.hashCode(data);
+        return result;
     }
 }
 
